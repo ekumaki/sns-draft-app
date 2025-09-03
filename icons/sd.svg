@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#ffffff" stroke="#e5e7eb"/>
+  <g fill="#2563eb" font-family="Segoe UI, system-ui, -apple-system, Roboto, 'Noto Sans JP', sans-serif" font-weight="700" font-size="240">
+    <text x="86" y="320">S</text>
+    <text x="260" y="320">D</text>
+  </g>
+  <rect x="32" y="32" width="448" height="448" rx="92" fill="none" stroke="#e5e7eb"/>
+  <title>SNS Draft App icon placeholder</title>
+</svg>
+

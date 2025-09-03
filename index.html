@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SNS Draft App</title>
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/sd.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/sd.svg" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header" role="banner">
+      <div class="brand">SNS Draft App</div>
+      <nav class="tabs" role="tablist" aria-label="ビュー切替">
+        <button id="tab-input" class="tab active" role="tab" aria-selected="true" aria-controls="panel-input">入力</button>
+        <button id="tab-saved" class="tab" role="tab" aria-selected="false" aria-controls="panel-saved">保存</button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <!-- 入力パネル -->
+      <section id="panel-input" class="panel" role="tabpanel" aria-labelledby="tab-input">
+        <label for="draft-text" class="sr-only">下書き入力</label>
+        <textarea id="draft-text" maxlength="2000" placeholder="ここに下書きを入力（最大2,000字）" aria-describedby="char-counter"></textarea>
+        <div id="char-counter" class="char-counter" aria-live="polite">0/140</div>
+      </section>
+
+      <!-- 保存一覧パネル -->
+      <section id="panel-saved" class="panel hidden" role="tabpanel" aria-labelledby="tab-saved">
+        <div class="search-bar">
+          <label for="search-input" class="sr-only">検索</label>
+          <input id="search-input" type="search" placeholder="検索（本文から部分一致）" />
+        </div>
+        <div id="list-container">
+          <div class="group-label" id="label-pinned" aria-hidden="true">ピン留め</div>
+          <ul id="list-pinned" class="draft-list" aria-label="ピン留め"></ul>
+          <div class="group-label" id="label-normal" aria-hidden="true">通常</div>
+          <ul id="list-normal" class="draft-list" aria-label="通常"></ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- 固定ボタンバー -->
+    <div class="bottom-bar" role="toolbar" aria-label="操作">
+      <button id="btn-copy" class="btn" aria-label="コピー"><span class="icon">📋</span> コピー</button>
+      <button id="btn-save" class="btn primary" aria-label="保存"><span class="icon">💾</span> 保存</button>
+      <button id="btn-delete" class="btn danger" aria-label="削除"><span class="icon">🗑️</span> 削除</button>
+    </div>
+
+    <!-- トースト -->
+    <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+
+    <!-- 右クリックメニュー -->
+    <div id="context-menu" class="context-menu" role="menu" hidden>
+      <button type="button" role="menuitem" data-action="pin">ピン留め</button>
+      <button type="button" role="menuitem" data-action="unpin">ピン解除</button>
+      <button type="button" role="menuitem" data-action="delete">削除</button>
+    </div>
+
+    <!-- 削除確認ダイアログ -->
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+      <div id="confirm-title">この下書きを削除しますか？</div>
+      <div class="dialog-actions">
+        <button id="confirm-delete" class="btn danger">削除</button>
+        <button id="confirm-cancel" class="btn">キャンセル</button>
+      </div>
+    </dialog>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,16 @@
+{
+  "name": "SNS Draft App",
+  "short_name": "SNS Draft",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "X（旧Twitter）への投稿用下書きを作成・保管・再利用するPWA",
+  "icons": [
+    { "src": "./icons/sd.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icons/sd.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
+
