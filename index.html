@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SNS Draft App</title>
+    <title>下書き箱</title>
     <meta name="theme-color" content="#ffffff" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icons/sd.svg" type="image/svg+xml" />
@@ -14,10 +14,10 @@
   </head>
   <body>
     <header class="app-header" role="banner">
-      <div class="brand">SNS Draft App</div>
+      <div class="brand"><img class="brand-icon" src="./icons/sd.svg" alt="" aria-hidden="true" />下書き箱</div>
       <nav class="tabs" role="tablist" aria-label="ビュー切替">
         <button id="tab-input" class="tab active" role="tab" aria-selected="true" aria-controls="panel-input">入力</button>
-        <button id="tab-saved" class="tab" role="tab" aria-selected="false" aria-controls="panel-saved">保存</button>
+        <button id="tab-saved" class="tab" role="tab" aria-selected="false" aria-controls="panel-saved">保存済み</button>
       </nav>
     </header>
 
@@ -26,7 +26,7 @@
       <section id="panel-input" class="panel" role="tabpanel" aria-labelledby="tab-input">
         <label for="draft-text" class="sr-only">下書き入力</label>
         <textarea id="draft-text" maxlength="2000" placeholder="ここに下書きを入力（最大2,000字）" aria-describedby="char-counter"></textarea>
-        <div id="char-counter" class="char-counter" aria-live="polite">0/140</div>
+        <div id="char-counter" class="char-counter" aria-live="polite">0文字/140文字</div>
       </section>
 
       <!-- 保存一覧パネル -->
@@ -35,20 +35,15 @@
           <label for="search-input" class="sr-only">検索</label>
           <input id="search-input" type="search" placeholder="検索（本文から部分一致）" />
         </div>
-        <div id="list-container">
-          <div class="group-label" id="label-pinned" aria-hidden="true">ピン留め</div>
-          <ul id="list-pinned" class="draft-list" aria-label="ピン留め"></ul>
-          <div class="group-label" id="label-normal" aria-hidden="true">通常</div>
-          <ul id="list-normal" class="draft-list" aria-label="通常"></ul>
-        </div>
+        <ul id="list-all" class="draft-list" aria-label="保存済み一覧"></ul>
       </section>
     </main>
 
     <!-- 固定ボタンバー -->
     <div class="bottom-bar" role="toolbar" aria-label="操作">
-      <button id="btn-copy" class="btn" aria-label="コピー"><span class="icon">📋</span> コピー</button>
-      <button id="btn-save" class="btn primary" aria-label="保存"><span class="icon">💾</span> 保存</button>
-      <button id="btn-delete" class="btn danger" aria-label="削除"><span class="icon">🗑️</span> 削除</button>
+      <button id="btn-copy" class="btn" aria-label="コピー"><img class="icon-img" src="./icons/ui/copy-black.png" alt="" />コピー</button>
+      <button id="btn-save" class="btn primary" aria-label="保存"><img class="icon-img" src="./icons/ui/save-black.png" alt="" />保存</button>
+      <button id="btn-delete" class="btn danger" aria-label="削除"><img class="icon-img" src="./icons/ui/delete-red.png" alt="" />削除</button>
     </div>
 
     <!-- トースト -->
@@ -73,4 +68,3 @@
     <script type="module" src="./js/app.js"></script>
   </body>
 </html>
-

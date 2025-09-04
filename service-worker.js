@@ -1,5 +1,5 @@
 /* Offline-first App Shell caching */
-const CACHE_NAME = 'sns-draft-app-v1';
+const CACHE_NAME = 'sns-draft-app-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,7 +7,12 @@ const APP_SHELL = [
   './manifest.webmanifest',
   './js/app.js',
   './js/db.js',
-  './icons/sd.svg'
+  './icons/sd.svg',
+  './icons/actions/pin-white.png',
+  './icons/actions/trash-white.png',
+  './icons/ui/copy-black.png',
+  './icons/ui/save-black.png',
+  './icons/ui/delete-red.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -39,4 +44,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-

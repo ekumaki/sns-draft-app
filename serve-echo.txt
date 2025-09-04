@@ -1,0 +1,43 @@
+﻿Param(
+  [int]$Port = 5173,
+  [switch]$NoOpen
+)
+
+$ErrorActionPreference = 'Stop'
+
+function Get-PythonCmd {
+  if (Get-Command py -ErrorAction SilentlyContinue) { return 'py' }
+  if (Get-Command python -ErrorAction SilentlyContinue) { return 'python' }
+  throw 'Python 縺瑚ｦ九▽縺九ｊ縺ｾ縺帙ｓ縲Ｑy 縺ｾ縺溘・ python 繧偵う繝ｳ繧ｹ繝医・繝ｫ縺励※縺上□縺輔＞縲・
+}
+
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$VenvPath = Join-Path $ScriptRoot '.venv'
+$VenvPython = Join-Path $VenvPath 'Scripts/python.exe'
+
+try {
+  Push-Location $ScriptRoot
+
+  $py = Get-PythonCmd
+
+  if (-not (Test-Path $VenvPython)) {
+    Write-Host "莉ｮ諠ｳ迺ｰ蠅・ｒ菴懈・縺励∪縺・ $VenvPath"
+    & $py -m venv $VenvPath
+  }
+
+  if (-not (Test-Path $VenvPython)) {
+    throw "莉ｮ諠ｳ迺ｰ蠅・・ python 縺瑚ｦ九▽縺九ｊ縺ｾ縺帙ｓ: $VenvPython"
+  }
+
+  $url = "http://localhost:$Port/"
+  Write-Host "繝ｭ繝ｼ繧ｫ繝ｫ繧ｵ繝ｼ繝舌・繧定ｵｷ蜍輔＠縺ｾ縺・ $url"
+  if (-not $NoOpen) { Start-Process $url | Out-Null }
+
+  Write-Host 'Ctrl+C 縺ｧ蛛懈ｭ｢縺励∪縺吶・
+  & $VenvPython -m http.server $Port
+}
+finally {
+  Pop-Location
+}
+
+

@@ -7,7 +7,6 @@ let lastSavedContent = null; // for duplicate guard (strict match)
 
 // ---- Elements ----
 const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 const elTabInput = $('#tab-input');
 const elTabSaved = $('#tab-saved');
@@ -20,10 +19,7 @@ const elBtnSave = $('#btn-save');
 const elBtnDelete = $('#btn-delete');
 const elToast = $('#toast');
 const elSearch = $('#search-input');
-const elListPinned = $('#list-pinned');
-const elListNormal = $('#list-normal');
-const elLabelPinned = $('#label-pinned');
-const elLabelNormal = $('#label-normal');
+const elListAll = $('#list-all');
 const elContext = $('#context-menu');
 const elDialog = $('#confirm-dialog');
 const elConfirmDelete = $('#confirm-delete');
@@ -44,7 +40,7 @@ function showToast(msg) {
 
 function countChars() {
   const len = elText.value.length;
-  elCounter.textContent = `${len}/140`;
+  elCounter.textContent = `${len}文字/140文字`;
   elCounter.classList.toggle('over', len > 140);
 }
 
@@ -68,12 +64,6 @@ function normalizeForCopy(input) {
   return s;
 }
 
-function sanitizePreview(text) {
-  // A short preview first line, trimmed
-  const firstLine = text.split('\n')[0] || '';
-  return firstLine.length > 120 ? firstLine.slice(0, 117) + '…' : firstLine;
-}
-
 function nowISO() { return new Date().toISOString(); }
 
 function switchTab(name) {
@@ -84,26 +74,23 @@ function switchTab(name) {
   elTabSaved.setAttribute('aria-selected', String(!isInput));
   elPanelInput.classList.toggle('hidden', !isInput);
   elPanelSaved.classList.toggle('hidden', isInput);
-  if (!isInput) {
-    elSearch.focus({ preventScroll: true });
-  } else {
-    elText.focus({ preventScroll: true });
-  }
+  // 入力タブ以外ではボトムバーを隠す
+  const bottom = document.querySelector('.bottom-bar');
+  if (bottom) bottom.classList.toggle('hidden', !isInput);
 }
 
 // ---- Rendering ----
 async function renderList() {
   const all = await getAllDrafts(db);
-
-  // Group and sort
-  const pinned = all.filter(x => !!x.pinned).sort((a, b) => {
-    const ap = a.pinned_at || a.updated_at || '';
-    const bp = b.pinned_at || b.updated_at || '';
-    return bp.localeCompare(ap);
+  // Single list: pinned first (pinned_at -> updated_at desc), then normal (updated_at desc)
+  const sorted = [...all].sort((a, b) => {
+    if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+    const ak = a.pinned ? (a.pinned_at || a.updated_at || '') : (a.updated_at || '');
+    const bk = b.pinned ? (b.pinned_at || b.updated_at || '') : (b.updated_at || '');
+    return bk.localeCompare(ak);
   });
-  const normal = all.filter(x => !x.pinned).sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
 
-  // Filter by search
+  // Filter by search (case-insensitive, newlines as space)
   const q = (elSearch.value || '').toLowerCase();
   const matches = (t) => {
     if (!q) return true;
@@ -111,61 +98,52 @@ async function renderList() {
     return hay.includes(q);
   };
 
-  const renderGroup = (ul, items) => {
-    ul.innerHTML = '';
-    for (const d of items) {
-      if (!matches(d.content)) continue;
-      const li = document.createElement('li');
-      li.className = 'item-wrapper';
+  elListAll.innerHTML = '';
+  for (const d of sorted) {
+    if (!matches(d.content)) continue;
+    const li = document.createElement('li');
+    li.className = 'item-wrapper';
 
-      // action buttons layer (hover/desktop or revealed via swipe)
-      const actions = document.createElement('div');
-      actions.className = 'item-actions';
-      const btnPin = document.createElement('button');
-      btnPin.className = 'act';
-      btnPin.textContent = d.pinned ? 'ピン解除' : 'ピン留め';
-      btnPin.addEventListener('click', (e) => { e.stopPropagation(); togglePin(d); });
-      const btnDel = document.createElement('button');
-      btnDel.className = 'act'; btnDel.textContent = '削除';
-      btnDel.addEventListener('click', (e) => { e.stopPropagation(); confirmDelete(d.id); });
-      actions.append(btnPin, btnDel);
+    // actions: icons only
+    const actions = document.createElement('div');
+    actions.className = 'item-actions';
+    const btnPin = document.createElement('button');
+    btnPin.className = 'act pin';
+    btnPin.setAttribute('aria-label', d.pinned ? 'ピン解除' : 'ピン留め');
+    btnPin.innerHTML = iconPin();
+    btnPin.addEventListener('click', (e) => { e.stopPropagation(); togglePin(d); });
+    const btnDel = document.createElement('button');
+    btnDel.className = 'act del';
+    btnDel.setAttribute('aria-label', '削除');
+    btnDel.innerHTML = iconTrash();
+    btnDel.addEventListener('click', (e) => { e.stopPropagation(); confirmDelete(d.id); });
+    actions.append(btnPin, btnDel);
 
-      const item = document.createElement('div');
-      item.className = 'item' + (d.pinned ? ' pinned' : '');
-      item.tabIndex = 0;
-      item.setAttribute('role', 'button');
-      item.setAttribute('aria-label', '下書きを編集');
-      item.innerHTML = `<div class="preview"></div><div class="meta"></div>`;
-      item.querySelector('.preview').textContent = d.content;
-      item.querySelector('.meta').textContent = `${d.pinned ? '📌 ' : ''}${sanitizePreview(d.content)}`;
+    const item = document.createElement('div');
+    item.className = 'item' + (d.pinned ? ' pinned' : '');
+    item.tabIndex = 0;
+    item.setAttribute('role', 'button');
+    item.setAttribute('aria-label', '下書きを編集');
+    const text = d.content || '';
+    const firstLine = text.split('\n')[0] || '';
+    const truncated = firstLine.length > 20 ? firstLine.slice(0, 20) + '…' : firstLine;
+    item.innerHTML = `<div class="single-line">${d.pinned ? '📌 ' : ''}${truncated}</div>`;
 
-      // click -> load for editing
-      item.addEventListener('click', () => loadForEdit(d.id));
+    // click -> load for editing
+    item.addEventListener('click', () => loadForEdit(d.id));
 
-      // context menu (right-click)
-      item.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        openContextMenu(e.clientX, e.clientY, d);
-      });
+    // context menu (right-click)
+    item.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      openContextMenu(e.clientX, e.clientY, d);
+    });
 
-      // swipe handling (touch)
-      setupSwipe(li, item);
+    // swipe handling (touch)
+    setupSwipe(li, item);
 
-      li.append(actions, item);
-      ul.appendChild(li);
-    }
-  };
-
-  renderGroup(elListPinned, pinned);
-  renderGroup(elListNormal, normal);
-
-  const showPinned = elListPinned.children.length > 0;
-  elLabelPinned.setAttribute('aria-hidden', String(!showPinned));
-  elLabelPinned.style.display = showPinned ? '' : 'none';
-
-  const showNormal = elListNormal.children.length > 0;
-  elLabelNormal.setAttribute('aria-hidden', String(!showNormal));
-  elLabelNormal.style.display = showNormal ? '' : 'none';
+    li.append(actions, item);
+    elListAll.appendChild(li);
+  }
 }
 
 // ---- Swipe interactions ----
@@ -179,7 +157,6 @@ function setupSwipe(wrapper, item) {
   wrapper.addEventListener('touchmove', (e) => {
     if (!dragging) return; currentX = e.touches[0].clientX;
     const dx = currentX - startX;
-    // left swipe -> negative translate
     if (dx < 0) item.style.transform = `translateX(${dx}px)`;
   }, { passive: true });
   wrapper.addEventListener('touchend', () => {
@@ -194,6 +171,13 @@ function setupSwipe(wrapper, item) {
 }
 
 // ---- Context menu ----
+function iconPin() {
+  return '<img src="./icons/actions/pin-white.png" alt="" width="22" height="22" />';
+}
+function iconTrash() {
+  return '<img src="./icons/actions/trash-white.png" alt="" width="22" height="22" />';
+}
+
 function openContextMenu(x, y, draft) {
   elContext.style.left = `${x}px`;
   elContext.style.top = `${y}px`;
@@ -336,8 +320,8 @@ function setupShortcuts() {
     const mod = isMac ? e.metaKey : e.ctrlKey;
     // Save
     if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); }
-    // Slash focuses search on saved tab
-    if (!elPanelSaved.classList.contains('hidden') && e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+    // Slash -> focus search on saved tab
+    if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
       e.preventDefault(); elSearch.focus();
     }
     // Alt+1 Alt+2 tab switch

@@ -1,6 +1,6 @@
 {
-  "name": "SNS Draft App",
-  "short_name": "SNS Draft",
+  "name": "下書き箱",
+  "short_name": "下書き箱",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -13,4 +13,3 @@
     { "src": "./icons/sd.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" }
   ]
 }
-
