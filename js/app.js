@@ -120,36 +120,13 @@ async function renderList() {
 
     item.addEventListener('click', () => loadForEdit(d.id));
     item.addEventListener('contextmenu', (e) => { e.preventDefault(); openContextMenu(e.clientX, e.clientY, d); });
-    setupSwipe(li, item);
 
-    li.append(actions, item);
+    li.append(item, actions);
     elListAll.appendChild(li);
   }
 }
 
-// ---- Swipe interactions ----
-function setupSwipe(wrapper, item) {
-  let startX = 0, currentX = 0, dragging = false;
-  const threshold = () => Math.max(80, item.offsetWidth * 0.3);
-  wrapper.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    startX = e.touches[0].clientX; currentX = startX; dragging = true;
-  }, { passive: true });
-  wrapper.addEventListener('touchmove', (e) => {
-    if (!dragging) return; currentX = e.touches[0].clientX;
-    const dx = currentX - startX;
-    if (dx < 0) item.style.transform = `translateX(${dx}px)`;
-  }, { passive: true });
-  wrapper.addEventListener('touchend', () => {
-    if (!dragging) return; dragging = false;
-    const dx = currentX - startX;
-    if (Math.abs(dx) > threshold() && dx < 0) {
-      item.style.transform = `translateX(${-threshold()}px)`;
-    } else {
-      item.style.transform = 'translateX(0)';
-    }
-  });
-}
+// Swipe interactions removed (replaced with always-visible actions)
 
 // ---- Icons ----
 function iconPin() {
