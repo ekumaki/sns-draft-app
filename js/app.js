@@ -47,19 +47,12 @@ function countChars() {
 // Normalization for copy only (spec-defined order)
 function normalizeForCopy(input) {
   let s = input;
-  // trim leading/trailing whitespace
   s = s.replace(/^\s+|\s+$/g, '');
-  // unify newlines to \n
   s = s.replace(/\r\n?|\u000D/g, '\n');
-  // remove trailing spaces at end of lines
   s = s.split('\n').map(line => line.replace(/\s+$/g, '')).join('\n');
-  // tabs -> single half-width space
   s = s.replace(/\t/g, ' ');
-  // convert NBSP and other invisible spaces (excluding full-width U+3000) to half-width space
   s = s.replace(/[\u00A0\u2000-\u2006\u2007\u2008-\u200A\u202F\u205F]/g, ' ');
-  // collapse consecutive half-width spaces (keep full-width spaces)
   s = s.replace(/ {2,}/g, ' ');
-  // Unicode NFC (avoid NFKC)
   try { s = s.normalize('NFC'); } catch {}
   return s;
 }
@@ -74,7 +67,6 @@ function switchTab(name) {
   elTabSaved.setAttribute('aria-selected', String(!isInput));
   elPanelInput.classList.toggle('hidden', !isInput);
   elPanelSaved.classList.toggle('hidden', isInput);
-  // 入力タブ以外ではボトムバーを隠す
   const bottom = document.querySelector('.bottom-bar');
   if (bottom) bottom.classList.toggle('hidden', !isInput);
 }
@@ -82,7 +74,6 @@ function switchTab(name) {
 // ---- Rendering ----
 async function renderList() {
   const all = await getAllDrafts(db);
-  // Single list: pinned first (pinned_at -> updated_at desc), then normal (updated_at desc)
   const sorted = [...all].sort((a, b) => {
     if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
     const ak = a.pinned ? (a.pinned_at || a.updated_at || '') : (a.updated_at || '');
@@ -90,8 +81,7 @@ async function renderList() {
     return bk.localeCompare(ak);
   });
 
-  // Filter by search (case-insensitive, newlines as space)
-  const q = (elSearch.value || '').toLowerCase();
+  const q = (elSearch?.value || '').toLowerCase();
   const matches = (t) => {
     if (!q) return true;
     const hay = (t || '').replace(/\n/g, ' ').toLowerCase();
@@ -104,19 +94,18 @@ async function renderList() {
     const li = document.createElement('li');
     li.className = 'item-wrapper';
 
-    // actions: icons only
     const actions = document.createElement('div');
     actions.className = 'item-actions';
     const btnPin = document.createElement('button');
     btnPin.className = 'act pin';
     btnPin.setAttribute('aria-label', d.pinned ? 'ピン解除' : 'ピン留め');
     btnPin.innerHTML = iconPin();
-    btnPin.addEventListener('click', (e) => { e.stopPropagation(); togglePin(d); });
+    btnPin.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); togglePin(d); });
     const btnDel = document.createElement('button');
     btnDel.className = 'act del';
     btnDel.setAttribute('aria-label', '削除');
     btnDel.innerHTML = iconTrash();
-    btnDel.addEventListener('click', (e) => { e.stopPropagation(); confirmDelete(d.id); });
+    btnDel.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); confirmDelete(d.id); });
     actions.append(btnPin, btnDel);
 
     const item = document.createElement('div');
@@ -129,16 +118,8 @@ async function renderList() {
     const truncated = firstLine.length > 20 ? firstLine.slice(0, 20) + '…' : firstLine;
     item.innerHTML = `<div class="single-line">${d.pinned ? '📌 ' : ''}${truncated}</div>`;
 
-    // click -> load for editing
     item.addEventListener('click', () => loadForEdit(d.id));
-
-    // context menu (right-click)
-    item.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      openContextMenu(e.clientX, e.clientY, d);
-    });
-
-    // swipe handling (touch)
+    item.addEventListener('contextmenu', (e) => { e.preventDefault(); openContextMenu(e.clientX, e.clientY, d); });
     setupSwipe(li, item);
 
     li.append(actions, item);
@@ -170,7 +151,7 @@ function setupSwipe(wrapper, item) {
   });
 }
 
-// ---- Context menu ----
+// ---- Icons ----
 function iconPin() {
   return '<img src="./icons/actions/pin-white.png" alt="" width="22" height="22" />';
 }
@@ -178,6 +159,7 @@ function iconTrash() {
   return '<img src="./icons/actions/trash-white.png" alt="" width="22" height="22" />';
 }
 
+// ---- Context menu ----
 function openContextMenu(x, y, draft) {
   elContext.style.left = `${x}px`;
   elContext.style.top = `${y}px`;
@@ -252,9 +234,7 @@ async function onSave() {
   const content = elText.value;
   if (!content) { showToast('内容が空です'); return; }
 
-  // Duplicate guard vs last saved content (strict match)
   if (lastSavedContent !== null && content === lastSavedContent) {
-    // Skip silently
     return;
   }
 
@@ -318,16 +298,12 @@ function setupShortcuts() {
   document.addEventListener('keydown', (e) => {
     const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
     const mod = isMac ? e.metaKey : e.ctrlKey;
-    // Save
     if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); }
-    // Slash -> focus search on saved tab
     if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
       e.preventDefault(); elSearch.focus();
     }
-    // Alt+1 Alt+2 tab switch
     if (e.altKey && e.key === '1') { e.preventDefault(); switchTab('input'); }
     if (e.altKey && e.key === '2') { e.preventDefault(); switchTab('saved'); }
-    // Esc closes dialog
     if (e.key === 'Escape' && elDialog.open) { e.preventDefault(); elDialog.close(); }
   });
 }
@@ -361,3 +337,4 @@ async function init() {
 }
 
 init().catch(err => console.error(err));
+
