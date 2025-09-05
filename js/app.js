@@ -115,7 +115,9 @@ async function renderList() {
     item.setAttribute('aria-label', '下書きを編集');
     const text = d.content || '';
     const firstLine = text.split('\n')[0] || '';
-    const truncated = firstLine.length > 20 ? firstLine.slice(0, 20) + '…' : firstLine;
+    const mobile = window.matchMedia && window.matchMedia('(max-width: 480px)').matches;
+    const limit = mobile ? 12 : 20;
+    const truncated = firstLine.length > limit ? firstLine.slice(0, limit) + '…' : firstLine;
     item.innerHTML = `<div class="single-line">${d.pinned ? '📌 ' : ''}${truncated}</div>`;
 
     item.addEventListener('click', () => loadForEdit(d.id));
