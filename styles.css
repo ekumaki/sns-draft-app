@@ -40,6 +40,7 @@ body {
 #panel-input #draft-text {
   width: 100%; min-height: 40vh; resize: vertical; padding: 12px; border: 2px solid var(--border-strong); border-radius: 8px; background: #fff; font-size: 1.0625rem;
 }
+.info-bar { margin-bottom: 8px; padding: 8px 10px; background: #fff7ed; color: #7c2d12; border: 1px solid #fed7aa; border-radius: 8px; font-size: 0.95rem; }
 .char-counter { margin-top: 8px; color: var(--muted); }
 .char-counter.over { color: var(--danger); font-weight: 600; }
 

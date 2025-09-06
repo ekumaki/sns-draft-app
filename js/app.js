@@ -24,6 +24,7 @@ const elContext = $('#context-menu');
 const elDialog = $('#confirm-dialog');
 const elConfirmDelete = $('#confirm-delete');
 const elConfirmCancel = $('#confirm-cancel');
+const elInfoBar = document.querySelector('#info-bar');
 
 // ---- Utilities ----
 function showToast(msg) {
@@ -179,7 +180,15 @@ async function togglePin(draft) {
 function confirmDelete(id) {
   if (!('showModal' in elDialog)) {
     if (confirm('この下書きを削除しますか？')) {
-      deleteDraft(db, id).then(renderList);
+      deleteDraft(db, id).then(() => {
+        if (currentEditingId === id) {
+          // Deleting the draft currently being edited -> switch to new-draft mode
+          currentEditingId = null;
+          lastSavedContent = null; // disable duplicate guard for next save
+          if (elInfoBar) elInfoBar.hidden = false;
+        }
+        renderList();
+      });
     }
     return;
   }
@@ -191,6 +200,12 @@ function confirmDelete(id) {
   };
   const onDel = async () => {
     await deleteDraft(db, id);
+    // If this was the one currently being edited, switch to new draft mode
+    if (currentEditingId === id) {
+      currentEditingId = null;
+      lastSavedContent = null;
+      if (elInfoBar) elInfoBar.hidden = false;
+    }
     elDialog.close(); onClose(); renderList();
   };
   const onCancel = () => { elDialog.close(); onClose(); };
@@ -213,7 +228,8 @@ async function onSave() {
   const content = elText.value;
   if (!content) { showToast('内容が空です'); return; }
 
-  if (lastSavedContent !== null && content === lastSavedContent) {
+  // Duplicate guard only applies to overwrite mode
+  if (currentEditingId && lastSavedContent !== null && content === lastSavedContent) {
     return;
   }
 
@@ -240,6 +256,7 @@ async function onSave() {
       currentEditingId = id;
       lastSavedContent = content;
       showToast('保存しました');
+      if (elInfoBar) elInfoBar.hidden = true; // hide new-save notice after first save
     }
     renderList();
   } catch (err) {
