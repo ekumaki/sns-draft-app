@@ -27,6 +27,9 @@
     <main class="app-main">
       <!-- 入力パネル -->
       <section id="panel-input" class="panel" role="tabpanel" aria-labelledby="tab-input">
+        <div id="info-bar" class="info-bar" role="status" aria-live="polite" hidden>
+          元の下書きは削除されました。保存すると新規として追加されます。
+        </div>
         <label for="draft-text" class="sr-only">下書き入力</label>
         <textarea id="draft-text" maxlength="2000" placeholder="ここに下書きを入力（最大2,000字）" aria-describedby="char-counter"></textarea>
         <div id="char-counter" class="char-counter" aria-live="polite">0文字/140文字</div>
