@@ -220,6 +220,7 @@ async function loadForEdit(id) {
   elText.value = d.content;
   lastSavedContent = d.content; // last saved for this draft
   countChars();
+  if (elInfoBar) elInfoBar.hidden = true; // 別の下書きを開いたら情報バーを非表示
   switchTab('input');
 }
 
